@@ -126,6 +126,9 @@ def train(mymodel, num_epochs, train_dataloader, validation_dataloader, device, 
     )
 
     loss = torch.nn.CrossEntropyLoss()
+    
+    train_acc = []
+
 
     for epoch in range(num_epochs):
 
