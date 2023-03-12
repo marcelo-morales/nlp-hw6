@@ -193,6 +193,7 @@ def train(mymodel, num_epochs, train_dataloader, validation_dataloader, device, 
             optimizer.zero_grad()
 
             # Then, compute the accuracy using the logits and the labels.
+            # 
             predictions = torch.argmax(logits, dim=1)
             train_accuracy.add_batch(predictions=predictions, references=labels)
 
