@@ -153,19 +153,49 @@ def train(mymodel, num_epochs, train_dataloader, validation_dataloader, device, 
             Then, compute the accuracy using the logits and the labels.
             """
 
-            input_ids = ...
-            attention_mask = ...
+            # input_ids = ...
+            # attention_mask = ...
 
-            output = mymodel(...)
-            predictions = ...
-            model_loss = loss(...)
+            # output = mymodel(...)
+            # predictions = ...
+            # model_loss = loss(...)
 
             ...
 
-            predictions = torch.argmax(predictions, dim=1)
+            # predictions = torch.argmax(predictions, dim=1)
 
-            # update metrics
-            train_accuracy.add_batch(predictions=predictions, references=batch['labels'])
+            # # update metrics
+            # train_accuracy.add_batch(predictions=predictions, references=batch['labels'])
+            
+            # Extract the input_ids, attention_mask, and labels from the batch;
+            # then send them to the device.
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+
+            # Then, pass the input_ids and attention_mask to the model to get the logits.
+            output = mymodel(input_ids=input_ids, attention_mask=attention_mask)
+            logits = output.logits
+
+            # Then, compute the loss using the logits and the labels.
+            model_loss = loss(logits, labels)
+
+            # Then, call loss.backward() to compute the gradients.
+            model_loss.backward()
+
+            # Then, call optimizer.step()  to update the model parameters.
+            optimizer.step()
+
+            # Then, call lr_scheduler.step() to update the learning rate.
+            lr_scheduler.step()
+
+            # Then, call optimizer.zero_grad() to reset the gradients for the next iteration.
+            optimizer.zero_grad()
+
+            # Then, compute the accuracy using the logits and the labels.
+            predictions = torch.argmax(logits, dim=1)
+            train_accuracy.add_batch(predictions=predictions, references=labels)
+
 
         # print evaluation metrics
         print(f" ===> Epoch {epoch + 1}")
@@ -246,6 +276,9 @@ def pre_process(model_name, batch_size, device, small_subset):
 
 # the entry point of the program
 if __name__ == "__main__":
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("--experiment", type=str, default=None)
     parser.add_argument("--small_subset", action='store_true')
